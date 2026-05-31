@@ -357,6 +357,24 @@ app.post('/api/pagos/cobrar', async (req, res) => {
     }
 });
 
+// 📂 RUTAS PARA ENTREGAR LOS ARCHIVOS HTML (CORRECCIÓN DE "CANNOT GET")
+// ==========================================
+app.get('/login.html', (req, res) => {
+    res.sendFile(__dirname + '/login.html');
+});
+
+app.get('/admin.html', (req, res) => {
+    res.sendFile(__dirname + '/admin.html');
+});
+
+app.get('/auxiliar.html', (req, res) => {
+    res.sendFile(__dirname + '/auxiliar.html');
+});
+
+app.get('/alumno.html', (req, res) => {
+    res.sendFile(__dirname + '/alumno.html');
+});
+
 // Encendido global del servidor
 app.listen(port, () => {
     console.log(`🚀 Servidor unificado corriendo perfectamente en http://localhost:${port}`); 
