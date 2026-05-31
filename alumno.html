@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Estudiante - Pagos en Línea</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-principal: #f8fafc;
+            --azul-formal: #0f172a;
+            --oro-llamativo: #eab308;
+            --verde-exito: #10b981;
+            --borde-tarjeta: #e2e8f0;
+            --texto-oscuro: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hubot Sans', sans-serif; }
+        body { background-color: var(--bg-principal); color: var(--texto-oscuro); padding: 20px; }
+        .container { width: 100%; max-width: 1000px; margin: 0 auto; }
+
+        /* --- ESTILOS AGREGADOS SOLO PARA LOS LOGOS SUPERIORES --- */
+        .header-dual { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 20px; 
+            padding: 10px 0;
+        }
+        .logo-box { 
+            width: 120px; 
+            height: 60px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .logo-box img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+        }
+
+        /* VISTA LOGIN */
+        #vista-login { max-width: 800px; margin: 60px auto; background: white; padding: 40px; border-radius: 24px; border: 2px solid var(--borde-tarjeta); text-align: center; }
+        
+        .login-logo { 
+            width: 140px;          
+            height: 60px; 
+            background: var(--azul-formal); 
+            color: white; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto 20px; 
+            font-weight: 800; 
+            font-size: 1.4rem;     
+            letter-spacing: 2px;   
+        }
+
+        /* VISTA PRINCIPAL PORTAL */
+        #vista-portal, #vista-ticket { display: none; }
+        nav { display: flex; justify-content: space-between; align-items: center; background: var(--azul-formal); padding: 20px; border-radius: 16px; color: white; margin-bottom: 25px; }
+        
+        .portal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .panel-card { background: #ffffff; border-radius: 20px; padding: 25px; border: 2px solid var(--borde-tarjeta); }
+        .panel-card h2 { font-size: 1.3rem; color: var(--azul-formal); margin-bottom: 15px; border-bottom: 2px solid var(--bg-principal); padding-bottom: 10px; font-weight: 800; }
+
+        /* CONTENEDOR INTERACTIVO DE TRÁMITES */
+        .tramite-opcion { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 2px solid var(--borde-tarjeta); border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: background 0.2s; }
+        .tramite-opcion:hover { background: #f8fafc; }
+        .tramite-opcion input { width: 20px; height: 20px; margin-right: 12px; cursor: pointer; }
+        .tramite-info { display: flex; align-items: center; }
+
+        .costo-box { background: var(--azul-formal); color: white; padding: 20px; border-radius: 12px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .monto { font-size: 1.5rem; color: var(--oro-llamativo); font-weight: 800; }
+
+        .btn-accion { width: 100%; padding: 15px; background: var(--oro-llamativo); color: var(--azul-formal); border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 15px; transition: all 0.2s; text-align: center; display: block; text-decoration: none; }
+        .btn-accion:hover { background: #d9a306; transform: translateY(-2px); }
+
+        /* COMPROBANTE DIGITAL */
+        .ticket-box { background: white; max-width: 400px; margin: 40px auto; padding: 30px; border: 2px dashed #0f172a; border-radius: 12px; text-align: center; }
+        .qr-area { margin: 20px 0; background: #f1f5f9; padding: 15px; border-radius: 10px; display: inline-block; }
+
+        .historial-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        .historial-table th, .historial-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--borde-tarjeta); }
+        .historial-table th { background: #f1f5f9; }
+
+        @media (max-width: 768px) { .portal-grid { grid-template-columns: 1fr; } }
+        @media print { body * { display: none; } #vista-ticket, #vista-ticket * { display: block; } .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Edicion de los logos -->
+        <header class="header-dual">
+            <div class="logo-box">
+                <img src="logo_empresa.svg" alt="Logo Empresa" onerror="this.parentNode.innerHTML='<small>TU LOGO</small>'">
+            </div>
+            <div class="logo-box">
+                <img src="logo_escuela.png" alt="Logo Escuela" onerror="this.parentNode.innerHTML='<small>LOGO ESCUELA</small>'">
+            </div>
+        </header>
+        <!-- PANTALLA 1: ACCESO DEL ALUMNO -->
+        <div id="vista-login">
+            
+            <h2 style="font-weight: 800; margin-bottom: 10px;">Portal de Autoservicio</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 25px;">Ingresa tus credenciales para consultar y pagar tus documentos</p>
+            
+            <form id="form-login">
+                 <div style="margin-bottom: 20px; text-align: left;">
+                    <label style="font-size: 0.85rem; font-weight: 600;">Nombre Completo</label>
+                    <input type="text" id="login-nombre" required placeholder="ingresa tu nombre correctamente" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--borde-tarjeta); outline:none;">
+                </div>
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="font-size: 0.85rem; font-weight: 600;">Matrícula Institucional</label>
+                    <input type="text" id="login-matricula" required placeholder="Ej: ESC202600" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--borde-tarjeta); outline:none;">
+                </div>
+                <button type="submit" class="btn-accion">Ingresar al Portal 🔑</button>
+            </form>
+        </div>
+
+        <!-- PANTALLA 2: MENÚ INTERACTIVO -->
+        <div id="vista-portal">
+            <nav>
+                <div>
+                    <h3 id="txt-bienvenida" style="font-size: 1.2rem; font-weight:800;">Bienvenido, Estudiante</h3>
+                    <p id="txt-carrera" style="font-size: 0.8rem; color: #a1a1aa;"></p>
+                </div>
+                <button id="btn-cerrar-portal" style="background:rgba(255,255,255,0.1); border:none; color:white; padding:8px 15px; border-radius:8px; font-weight:600; cursor:pointer;">Cerrar Portal</button>
+            </nav>
+
+            <main class="portal-grid">
+                <div class="panel-card">
+                    <h2>💳 Selecciona tus Trámites a Pagar</h2>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Puedes marcar uno o más trámites a la vez para pagarlos en una sola transacción:</p>
+                    
+                    <div id="contenedor-checkboxes">
+                        <p style="color:#64748b;">Cargando catálogo oficial...</p>
+                    </div>
+
+                    <div class="costo-box">
+                        <span>Monto Total a Pagar:</span>
+                        <span class="monto" id="monto-total">$0.00 MXN</span>
+                    </div>
+
+                    <button id="btn-pagar-mp" class="btn-accion" style="background:var(--verde-exito); color:white;">Pagar Seguro con Mercado Pago 🔒</button>
+                </div>
+
+                <div class="panel-card">
+                    <h2>📋 Tu Historial Reciente de Pagos</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="historial-table">
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th>Monto</th>
+                                    <th>Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-historial">
+                                <tr><td colspan="3" style="text-align:center; color:#64748b;">Cargando historial...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- PANTALLA 3: COMPROBANTE DIGITAL CON QR -->
+        <div id="vista-ticket">
+            <div class="ticket-box">
+                <h2 style="font-weight: 800; color: var(--azul-formal);">COMPROBANTE DIGITAL</h2>
+                <p style="font-size: 0.85rem; color: #64748b;">Validación Automática del Sistema</p>
+                <div style="border-bottom: 2px dashed #0f172a; margin: 15px 0;"></div>
+                
+                <div style="text-align: left; font-size: 0.9rem; line-height: 1.6;">
+                    <p><strong>Folio Interno:</strong> <span id="t-folio"></span></p>
+                    <p><strong>Fecha Operación:</strong> <span id="t-fecha"></span></p>
+                    <p><strong>Alumno:</strong> <span id="t-alumno"></span></p>
+                    <p><strong>Matrícula:</strong> <span id="t-matricula"></span></p>
+                    <p><strong>Concepto Liquidado:</strong> <span id="t-concepto"></span></p>
+                    <p><strong>Referencia MP:</strong> <span id="t-referencia"></span></p>
+                    <p><strong>Estatus:</strong> <span style="color:var(--verde-exito); font-weight:bold;" id="t-estatus"></span></p>
+                </div>
+
+                <div style="border-bottom: 2px dashed #0f172a; margin: 15px 0;"></div>
+                <h3 style="font-size: 1.4rem; font-weight:800;">Total: $<span id="t-total"></span>.00</h3>
+                
+                <div class="qr-area">
+                    <img id="img-qr" src="" alt="Código QR de Validación" style="width: 150px; height: 150px; display:block;">
+                </div>
+                <p style="font-size:0.7rem; color:#64748b; font-family:monospace;">Escanea para verificar la autenticidad en Supabase Cloud</p>
+
+                <div class="no-print">
+                    <button id="btn-imprimir" class="btn-accion">🖨️ Imprimir o Guardar PDF</button>
+                    <button id="btn-volver-inicio" class="btn-accion" style="background:#64748b; color:white;">Volver al Inicio</button>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 40px; font-size: 0.85rem; color: #64748b; padding-bottom: 20px;">
+         &copy; 2026 Sistema de Gestión y Cobros Escolares - Módulo Comercial SAAS.<br>
+         Desarrollado por <strong>Luna Network</strong>. Todos los derechos reservados.
+        </footer>
+    </div>
+
+    <script>
+        let alumnoAutenticado = null;
+        let listaConceptosGlobal = [];
+
+        // Inicializador de eventos sin JavaScript inline (Previene el error de CSP de Mercado Pago)
+        document.addEventListener("DOMContentLoaded", function() {
+            // Asignación de clics
+            document.getElementById('form-login').addEventListener('submit', autenticarAlumno);
+            document.getElementById('btn-pagar-mp').addEventListener('click', enviarAPasarela);
+            document.getElementById('btn-cerrar-portal').addEventListener('click', cerrarSesionPortal);
+            document.getElementById('btn-imprimir').addEventListener('click', function() { window.print(); });
+            document.getElementById('btn-volver-inicio').addEventListener('click', cerrarSesionPortal);
+
+            // Revisar retorno de Mercado Pago
+            const urlParams = new URLSearchParams(window.location.search);
+            const estatusUrl = urlParams.get('estatus');
+            const pagoIdUrl = urlParams.get('pago_id');
+
+            if (estatusUrl === 'success' && pagoIdUrl) {
+                document.getElementById('vista-login').style.display = "none";
+                document.getElementById('vista-portal').style.display = "none";
+                document.getElementById('vista-ticket').style.display = "block";
+                cargarTicketOficial(pagoIdUrl);
+            }
+        });
+
+        function cerrarSesionPortal() {
+            window.location.href = 'alumno.html';
+        }
+
+        // ENTRADA DEL ALUMNO (LOGIN)
+        async function autenticarAlumno(event) {
+            event.preventDefault();
+            const matricula = document.getElementById('login-matricula').value;
+            const nombre = document.getElementById('login-nombre').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/alumno/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matricula, nombre })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alumnoAutenticado = data.estudiante;
+                    document.getElementById('vista-login').style.display = "none";
+                    document.getElementById('vista-portal').style.display = "block";
+                    
+                    document.getElementById('txt-bienvenida').innerText = `¡Bienvenido, ${alumnoAutenticado.nombre}!`;
+                    document.getElementById('txt-carrera').innerText = `${alumnoAutenticado.carrera} • ${alumnoAutenticado.cuatrimestre}° Cuatrimestre (${alumnoAutenticado.modalidad})`;
+                    
+                    await cargarCatalogoTrámites();
+                    await cargarHistorialAlumno();
+                } else {
+                    alert(`❌ Acceso denegado: ${data.error}`);
+                }
+            } catch (error) {
+                alert("❌ Servidor desconectado. Inicia server.js e intenta de nuevo.");
+            }
+        }
+
+        // CARGAR LOS CONCEPTOS DESDE LA DB DE FORMA INTERACTIVA
+        async function cargarCatalogoTrámites() {
+            const contenedor = document.getElementById('contenedor-checkboxes');
+            try {
+                const response = await fetch('http://localhost:3000/api/conceptos');
+                const data = await response.json();
+
+                if (data.success) {
+                    contenedor.innerHTML = "";
+                    listaConceptosGlobal = data.conceptos;
+
+                    data.conceptos.forEach(c => {
+                        const label = document.createElement('label');
+                        label.className = 'tramite-opcion';
+                        label.innerHTML = `
+                            <div class="tramite-info">
+                                <input type="checkbox" value="${c.id}" data-precio="${c.monto}">
+                                <span>${c.nombre_concepto}</span>
+                            </div>
+                            <strong style="color:var(--azul-formal);">$${c.monto}.00</strong>
+                        `;
+                        // Escuchador dinámico de cambio de precio
+                        label.querySelector('input').addEventListener('change', calcularTotalDinamico);
+                        contenedor.appendChild(label);
+                    });
+                }
+            } catch (e) {
+                contenedor.innerHTML = "<p style='color:red;'>Error al mapear conceptos maestros.</p>";
+            }
+        }
+
+        function calcularTotalDinamico() {
+            const checkboxes = document.querySelectorAll('#contenedor-checkboxes input[type="checkbox"]');
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    total += parseFloat(cb.getAttribute('data-precio'));
+                }
+            });
+            document.getElementById('monto-total').innerText = `$${total.toFixed(2)} MXN`;
+        }
+
+        // REDIRECCIÓN ULTRA SEGURA A LA PREFERENCIA DE MERCADO PAGO
+        async function enviarAPasarela() {
+            const checkboxes = document.querySelectorAll('#contenedor-checkboxes input[type="checkbox"]');
+            let tramitesSeleccionados = [];
+            let total = 0;
+
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const id = cb.value;
+                    const precio = parseFloat(cb.getAttribute('data-precio'));
+                    const objetoConcepto = listaConceptosGlobal.find(item => item.id == id);
+                    
+                    tramitesSeleccionados.push({
+                        id: id,
+                        concepto: objetoConcepto.nombre_concepto,
+                        monto: precio
+                    });
+                    total += precio;
+                }
+            });
+
+            if (tramitesSeleccionados.length === 0) {
+                alert("⚠️ Selecciona por lo menos un trámite de la lista para proceder.");
+                return;
+            }
+
+            const aceptar = confirm(`Confirmas el total de $${total}.00 MXN. Serás redireccionado de forma blindada al portal seguro de Mercado Pago.`);
+            if (!aceptar) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/pagos/crear_preferencia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        estudiante_id: alumnoAutenticado.id,
+                        tramites: tramitesSeleccionados,
+                        total: total
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success && data.init_point) {
+                    // Nos redirigimos de forma segura a Mercado Pago
+                    window.location.href = data.init_point;
+                } else {
+                    alert("❌ Error al procesar pasarela.");
+                }
+            } catch (err) {
+                alert("❌ Falla de comunicación con el gateway de Mercado Pago.");
+            }
+        }
+
+        async function cargarHistorialAlumno() {
+            const tbody = document.getElementById('tabla-historial');
+            try {
+                const response = await fetch(`http://localhost:3000/api/alumno/historial/${alumnoAutenticado.id}`);
+                const data = await response.json();
+
+                if (data.success && data.historial.length > 0) {
+                    tbody.innerHTML = "";
+                    data.historial.forEach(h => {
+                        const fechaStr = h.fecha_pago ? new Date(h.fecha_pago).toLocaleDateString() : 'Pendiente/Línea';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${h.concepto}</td>
+                                <td><strong>$${h.monto_pagado}.00</strong></td>
+                                <td style="font-weight:600; color:${h.estatus_pago.includes('Aprobado') ? 'var(--verde-exito)' : '#f59e0b'};">${h.estatus_pago}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b;">No registras transacciones previas.</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="3" style="color:red;">Error de lectura.</td></tr>`;
+            }
+        }
+
+        async function cargarTicketOficial(id) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/pagos/ticket/${id}`);
+                const data = await response.json();
+
+                if (data.success && data.pago) {
+                    const p = data.pago;
+                    document.getElementById('t-folio').innerText = `FOLIO-DIG-${p.id}`;
+                    document.getElementById('t-fecha').innerText = new Date(p.fecha_pago).toLocaleString();
+                    document.getElementById('t-alumno').innerText = p.nombre;
+                    document.getElementById('t-matricula').innerText = p.matricula.toUpperCase();
+                    document.getElementById('t-concepto').innerText = p.concepto;
+                    document.getElementById('t-referencia').innerText = p.referencia_pago;
+                    document.getElementById('t-estatus').innerText = p.estatus_pago;
+                    document.getElementById('t-total').innerText = p.monto_pagado;
+
+                    const textoQR = `FIRMADO_DIGITALMENTE: Folio:${p.id} | Alumno:${p.nombre} | Matricula:${p.matricula} | Monto:${p.monto_pagado} | Estatus:${p.estatus_pago}`;
+                    document.getElementById('img-qr').src = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(textoQR)}&choe=UTF-8`;
+                }
+            } catch (e) {
+                alert("Error al estructurar el comprobante digital.");
+            }
+        }
+    </script>
+</body>
+</html>

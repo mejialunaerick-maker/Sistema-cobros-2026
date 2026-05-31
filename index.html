@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cobros Escolares - Plataforma Universal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-principal: #f8fafc;
+            --azul-formal: #0f172a;
+            --azul-intermedio: #1e293b;
+            --oro-llamativo: #eab308;
+            --texto-oscuro: #334155;
+            --texto-claro: #ffffff;
+            --borde-tarjeta: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hubot Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--texto-oscuro);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+        }
+
+        /* Encabezado con Diseño Dual */
+        .header-dual {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--borde-tarjeta);
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+            gap: 20px;
+        }
+
+        .logo-box { 
+            width: 120px; 
+            height: 60px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: 0px solid var(--borde-tarjeta);
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            text-align: center;
+        }
+
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .header-text { text-align: center; flex-grow: 1; }
+        .header-text h1 { font-size: 2rem; color: var(--azul-formal); font-weight: 800; margin-bottom: 6px; }
+        .header-text p { font-size: 1rem; color: #64748b; }
+
+        /* Sección de Roles */
+        .grid-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 20px; }
+        .card-rol { background: #ffffff; border: 2px solid var(--borde-tarjeta); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-rol:hover { transform: translateY(-5px); border-color: var(--azul-formal); box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08); }
+        .icon-rol { font-size: 3rem; margin-bottom: 15px; }
+        .card-rol h3 { font-size: 1.3rem; color: var(--azul-formal); margin-bottom: 12px; font-weight: 600; }
+        .card-rol p { font-size: 0.95rem; color: #64748b; margin-bottom: 25px; line-height: 1.5; }
+        
+        .btn-acceso { display: block; width: 100%; padding: 14px 20px; background-color: var(--azul-formal); color: var(--texto-claro); border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; transition: 0.2s; }
+        .card-rol.estudiante .btn-acceso { background-color: var(--oro-llamativo); color: var(--azul-formal); }
+        .btn-acceso:hover { background-color: var(--azul-intermedio); }
+
+        footer { margin-top: 40px; text-align: center; font-size: 0.85rem; color: #94a3b8; }
+
+        @media (max-width: 850px) {
+            .grid-roles { grid-template-columns: 1fr; }
+            .header-dual { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header-dual">
+            <div class="logo-box">
+                <img src="logo_empresa.svg" alt="" onerror="this.parentNode.innerHTML='<small>TU LOGO</small>'">
+            </div>
+            <div class="header-text">
+                <h1>Bienvenidos al Sistema de Cobros Escolares</h1>
+                <p>Seleccione su perfil de acceso para ingresar a la plataforma de gestión financiera</p>
+            </div>
+            <div class="logo-box">
+                <img src="logo_escuela.png" alt="Escuela" onerror="this.parentNode.innerHTML='<small>LOGO ESCUELA</small>'">
+            </div>
+        </header>
+
+        <main class="grid-roles">
+            <div class="card-rol">
+                <div>
+                    <div class="icon-rol">👑</div>
+                    <h3>Súper Administrador</h3>
+                    <p>Acceso total del sistema. Permite la gestión de usuarios del personal, configuración de cuotas, auditoría global y reportes.</p>
+                </div>
+                <button id="btn-admin" class="btn-acceso">Acceso Total</button>
+            </div>
+
+            <div class="card-rol">
+                <div>
+                    <div class="icon-rol">💼</div>
+                    <h3>Auxiliar Escolar</h3>
+                    <p>Módulo operativo para atención en ventanilla, búsqueda de matrículas y procesamiento de cobros directos.</p>
+                </div>
+                <button id="btn-auxiliar" class="btn-acceso">Ingresar a Ventanilla</button>
+            </div>
+
+            <div class="card-rol estudiante">
+                <div>
+                    <div class="icon-rol">🎓</div>
+                    <h3>Portal de Alumnos</h3>
+                    <p>Consulta de estados de cuenta, visualización de estatus financiero y procesamiento de pagos en línea.</p>
+                </div>
+                <button id="btn-alumno" class="btn-acceso">Consultar y Pagar</button>
+            </div>
+        </main>
+
+        <footer>
+            &copy; 2026 Sistema de Gestión y Cobros Escolares - Módulo Comercial SAAS.<br>
+        Desarrollado por <strong>Luna Network</strong>. Todos los derechos reservados.
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById('btn-admin')?.addEventListener('click', () => irALogin('admin'));
+            document.getElementById('btn-auxiliar')?.addEventListener('click', () => irALogin('auxiliar'));
+            document.getElementById('btn-alumno')?.addEventListener('click', () => irAPortalEstudiantes());
+        });
+
+        function irALogin(tipoPersonal) { window.location.href = `login.html?role=${tipoPersonal}`; }
+        function irAPortalEstudiantes() { window.location.href = `alumno.html`; }
+    </script>
+</body>
+</html>

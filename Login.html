@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso al Sistema - Gestión Institucional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-principal: #f8fafc;
+            --azul-formal: #0f172a;
+            --azul-intermedio: #1e293b;
+            --oro-llamativo: #eab308;
+            --texto-oscuro: #334155;
+            --texto-claro: #ffffff;
+            --borde-tarjeta: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hubot Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-principal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 80px; /* Espacio para el header fijo */
+        }
+
+        /* Estilos del Header Dual */
+        .header-dual { 
+            position: absolute; top: 0; left: 0; width: 100%;
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 20px 40px; background: white; border-bottom: 2px solid #e2e8f0; 
+        }
+        .logo-box { width: 100px; height: 50px; display: flex; align-items: center; justify-content: center; border: 0px solid #e2e8f0; border-radius: 6px; font-size: 0.6rem; color: #94a3b8; text-align: center; }
+        .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .login-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 24px;
+            border: 2px solid var(--borde-tarjeta);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.04);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: var(--azul-formal);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--azul-formal);
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--borde-tarjeta);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--azul-formal);
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+        }
+
+        .btn-enviar {
+            width: 100%;
+            padding: 14px;
+            background: var(--azul-formal);
+            color: var(--texto-claro);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-enviar:hover { background: var(--azul-intermedio); }
+
+        .btn-volver {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-dual">
+        <div class="logo-box"><img src="logo_empresa.svg" alt="Empresa" onerror="this.parentNode.innerText='TU LOGO'"></div>
+        <div class="logo-box"><img src="logo_escuela.png" alt="Escuela" onerror="this.parentNode.innerText='LOGO ESCUELA'"></div>
+    </header>
+
+    <div class="login-card">
+        <div class="login-header">
+            <h2 id="login-title">Acceso al Sistema</h2>
+            <p id="login-desc">Introduce tus credenciales autorizadas</p>
+        </div>
+
+        <form onsubmit="autenticarUsuario(event)">
+            <div class="form-group">
+                <label>Correo Electrónico Corporativo</label>
+                <input type="email" id="email" required placeholder="ejemplo@plataforma.com">
+            </div>
+            <div class="form-group">
+                <label>Contraseña de Seguridad</label>
+                <input type="password" id="password" required placeholder="••••••••••••">
+            </div>
+            <button type="submit" class="btn-enviar">Verificar e Ingresar</button>
+        </form>
+
+        <a href="index.html" class="btn-volver">← Volver a la selección de rol</a>
+    </div>
+
+    <script>
+    // Leer el rol desde los parámetros de la URL (?role=admin o ?role=auxiliar)
+    const params = new URLSearchParams(window.location.search);
+    const rolEsperado = params.get('role') || 'admin';
+
+    // Personalizar interfaz dinámicamente según el botón pulsado en el Index
+    if (rolEsperado === 'admin') {
+        document.getElementById('login-title').innerText = "🔑 Súper Administrador";
+        document.getElementById('login-desc').innerText = "Panel de Control Global y Configuración SaaS";
+    } else {
+        document.getElementById('login-title').innerText = "💼 Módulo de Auxiliares";
+        document.getElementById('login-desc').innerText = "Terminal Operativa de Ventanilla y Cobros";
+    }
+
+    // FUNCIÓN CONECTADA AL BACKEND REAL
+    async function autenticarUsuario(event) {
+        event.preventDefault();
+        
+        const correo = document.getElementById('email').value;
+        const contrasena = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo, contrasena })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const rolObtenido = data.usuario.rol; 
+                const rolFormateado = rolObtenido.toLowerCase().trim();
+
+                if (rolEsperado === 'admin' && rolFormateado !== 'administrador' && rolFormateado !== 'admin' && rolFormateado !== 'superadmin') {
+                    alert(`⚠️ Acceso denegado: Tu cuenta en la base de datos está registrada como [${rolObtenido}], no como Administrador.`);
+                    return;
+                }
+
+                if (rolEsperado === 'auxiliar' && rolFormateado !== 'personal' && rolFormateado !== 'auxiliar') {
+                    alert(`⚠️ Acceso denegado: Tu cuenta en la base de datos está registrada como [${rolObtenido}], no como Auxiliar.`);
+                    return;
+                }
+
+                localStorage.setItem('nombreUsuario', data.usuario.nombre);
+
+                if (rolFormateado === 'administrador' || rolFormateado === 'admin' || rolFormateado === 'superadmin') {
+                    window.location.href = 'admin.html';
+                } else if (rolFormateado === 'personal' || rolFormateado === 'auxiliar') {
+                    window.location.href = 'auxiliar.html';
+                }
+
+            } else {
+                alert(`❌ Error de acceso: ${data.error}`);
+            }
+
+        } catch (error) {
+            console.error("Error en la conexión fetch:", error);
+            alert("❌ No se pudo conectar con el servidor de autenticación. Verifica que tu backend esté corriendo y que CORS esté activo.");
+        }
+    }
+    </script>
+   
+</body>
+</html>

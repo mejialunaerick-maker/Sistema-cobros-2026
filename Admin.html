@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Súper Administrador - Control de Plataforma Escolar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-principal: #f8fafc;
+            --azul-formal: #0f172a;
+            --azul-intermedio: #1e293b;
+            --oro-llamativo: #eab308;
+            --verde-exito: #10b981;
+            --texto-oscuro: #334155;
+            --texto-claro: #ffffff;
+            --borde-tarjeta: #e2e8f0;
+            --color-gris: #a0a2a6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hubot Sans', sans-serif; }
+        body { background-color: var(--bg-principal); color: var(--texto-oscuro); padding: 30px 20px; }
+        
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--color-gris);
+            padding: 20px 30px;
+            border-radius: 16px;
+            color: var(--texto-claro);
+            margin-bottom: 35px;
+        }
+
+        .btn-cerrar {
+            background: #ef4444;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Bloques de KPIs modificados a 4 Columnas para meter Alumnos */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            border: 2px solid var(--borde-tarjeta);
+        }
+
+        .kpi-card span { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .kpi-card h3 { font-size: 1.6rem; color: var(--azul-formal); margin-top: 5px; font-weight: 800; }
+
+        /* Grid de Secciones */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+        }
+
+        .section-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--borde-tarjeta);
+            margin-bottom: 30px;
+        }
+
+        .section-card h2 {
+            font-size: 1.3rem;
+            color: var(--azul-formal);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg-principal);
+        }
+
+        /* Formularios internos */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--azul-formal); }
+        input, select {
+            width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--borde-tarjeta); outline: none; font-size: 0.95rem;
+        }
+        input:focus { border-color: var(--azul-formal); }
+
+        .btn-accion {
+            padding: 12px 20px;
+            background: var(--azul-formal);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        .btn-accion:hover { background: var(--azul-intermedio); }
+
+        /* Tablas */
+        .admin-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem;
+        }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--borde-tarjeta); }
+        .admin-table th { background: var(--bg-principal); color: var(--azul-formal); }
+
+        .badge-activo { background: #ecfdf5; color: var(--verde-exito); padding: 4px 8px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+    <nav>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="logo-inline" style="height: 45px;">
+                <img src="logo_empresa.svg" alt="Logo" style="height: 100%; width: auto; object-fit: contain;">
+            </div>
+            
+            <div>
+                <h2 style="font-weight: 800;">Panel Súper Administrador</h2>
+                <p style="font-size: 0.85rem; color: #94a3b8;">Control de Configuración Global del Sistema</p>
+            </div>
+        </div>
+        
+        <a href="index.html" class="btn-cerrar">Cerrar Sesión 🔒</a>
+    </nav>
+</div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <span>Recaudación Total Real</span>
+                <h3 id="kpi-recaudacion" style="color: var(--verde-exito);">$0.00 MXN</h3>
+            </div>
+            <div class="kpi-card">
+                <span>Alumnos Inscritos En Total</span>
+                <h3 id="kpi-alumnos">0 Alumnos</h3>
+            </div>
+            <div class="kpi-card">
+                <span>Auxiliares Activos</span>
+                <h3 id="kpi-auxiliares">0 Operadores</h3>
+            </div>
+            <div class="kpi-card">
+                <span>Transacciones del Día</span>
+                <h3 id="kpi-transacciones">0 Pagos</h3>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            
+            <div>
+                <div class="section-card">
+                    <h2>👥 Registrar Nuevo Auxiliar de Ventanilla</h2>
+                    <form id="form-auxiliar" onsubmit="agregarAuxiliar(event)">
+                        <div class="form-row">
+                            <div>
+                                <label>Nombre Completo</label>
+                                <input type="text" id="aux-nombre" required placeholder="Nombre">
+                            </div>
+                            <div>
+                                <label>Correo Electrónico</label>
+                                <input type="email" id="aux-email" required placeholder="@institucion.com">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div>
+                                <label>Asignar Campus / Sucursal</label>
+                                <select id="aux-campus">
+                                    <option value="Campus Central">Campus Central</option>
+                                    <option value="Campus Norte">Campus Norte</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Contraseña Temporal</label>
+                                <input type="password" id="aux-pass" required placeholder="Definir contraseña">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-accion">Crear Cuenta de Operador</button>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h2>📋 Personal de Caja con Acceso Activo</h2>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Auxiliar</th>
+                                <th>Correo de Acceso</th>
+                                <th>Ubicación Asignada</th>
+                                <th style="text-align: right;">Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-auxiliares">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-card">
+                    <h2>⚙️ Tarifas Maestras de Trámites</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom: 20px;">
+                        Modifica los valores aquí para actualizar los cobros de forma persistente en el navegador.
+                    </p>
+                    
+                    <form onsubmit="guardarTarifas(event)">
+                        <div style="margin-bottom: 15px;">
+                            <label>Inscripción Cuatrimestral ($)</label>
+                            <input type="number" id="tarifa-inscripcion-cuatri">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label>Inscripción Mensual ($)</label>
+                            <input type="number" id="tarifa-inscripcion-mensual">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label>Constancia de Estudios ($)</label>
+                            <input type="number" id="tarifa-constancia">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label>Recursamiento de Materia ($)</label>
+                            <input type="number" id="tarifa-recursamiento">
+                        </div>
+                        <div style="margin-bottom: 25px;">
+                            <label>Examen Extraordinario ($)</label>
+                            <input type="number" id="tarifa-extraordinario">
+                        </div>
+                        <button type="submit" class="btn-accion" style="background: var(--oro-llamativo); color: var(--azul-formal);">
+                            ⚡ Guardar Cambios Globales
+                        </button>
+                    </form>
+                </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // CARGA INICIAL COMPLETA AL ABRIR LA PÁGINA
+        window.onload = async function() {
+            await cargarAuxiliares();
+            await cargarEstadisticasReal();
+            cargarTarifasPersistentes();
+        };
+
+        // 1. CARGAR ESTADÍSTICAS DESDE EL BACKEND EN TIEMPO REAL
+        async function cargarEstadisticasReal() {
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/estadisticas');
+                const data = await response.json();
+
+                // Formateamos e inyectamos los valores reales en el HTML
+                document.getElementById('kpi-recaudacion').innerText = `$${data.recaudacion.toFixed(2)} MXN`;
+                document.getElementById('kpi-alumnos').innerText = `${data.alumnos} Alumnos`;
+                document.getElementById('kpi-auxiliares').innerText = `${data.auxiliares} Operadores`;
+                document.getElementById('kpi-transacciones').innerText = `${data.pagosDia} Pagos`;
+            } catch (error) {
+                console.error("Error cargando KPIs:", error);
+            }
+        }
+
+        // 2. CARGAR AUXILIARES DESDE SUPABASE
+        async function cargarAuxiliares() {
+            const tabla = document.getElementById('tabla-auxiliares');
+            try {
+                const response = await fetch('http://localhost:3000/api/usuarios/auxiliares');
+                const auxiliares = await response.json();
+
+                tabla.innerHTML = "";
+
+                if (auxiliares.length === 0) {
+                    tabla.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay auxiliares registrados en la base de datos.</td></tr>`;
+                    return;
+                }
+
+                auxiliares.forEach(user => {
+                    const nuevaFila = document.createElement('tr');
+                    nuevaFila.innerHTML = `
+                        <td>${user.nombre}</td>
+                        <td>${user.correo}</td>
+                        <td>Campus Central</td>
+                        <td style="text-align: right;">
+                            <span class="badge-activo">${user.activo ? 'Activo' : 'Inactivo'}</span>
+                        </td>
+                    `;
+                    tabla.appendChild(nuevaFila);
+                });
+            } catch (error) {
+                console.error("Error al cargar auxiliares:", error);
+            }
+        }
+
+        // 3. REGISTRAR AUXILIAR REAL
+        async function agregarAuxiliar(event) {
+            event.preventDefault();
+            const nombre = document.getElementById('aux-nombre').value;
+            const email = document.getElementById('aux-email').value;
+            const contrasena = document.getElementById('aux-pass').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/usuarios/auxiliar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, correo: email, contrasena })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('form-auxiliar').reset();
+                    alert(`🎉 ¡Registrado en la nube! Cuenta creada para: ${data.usuario.nombre}`);
+                    
+                    // Actualizamos la tabla y el contador superior de inmediato
+                    await cargarAuxiliares();
+                    await cargarEstadisticasReal();
+                } else {
+                    alert(`❌ Error al registrar: ${data.error}`);
+                }
+            } catch (error) {
+                console.error("Error en fetch:", error);
+                alert("❌ No se pudo conectar con el servidor.");
+            }
+        }
+
+        // 4. NUEVA LÓGICA DE TARIFAS REALES CONECTADAS A SUPABASE
+        async function cargarTarifasPersistentes() {
+            try {
+                // Le pedimos al servidor los conceptos con sus precios reales actualizados
+                const response = await fetch('http://localhost:3000/api/conceptos');
+                const data = await response.json();
+
+                if (data.success && data.conceptos.length >= 5) {
+                    // Mapeamos los inputs del HTML con las filas reales de tu tabla conceptos_cobro
+                    // Asegúrate de que los IDs en tu base de datos sean 1, 2, 3, 4 y 5.
+                    document.getElementById('tarifa-inscripcion-cuatri').value = data.conceptos[0].monto;
+                    document.getElementById('tarifa-inscripcion-mensual').value = data.conceptos[1].monto;
+                    document.getElementById('tarifa-constancia').value = data.conceptos[2].monto;
+                    document.getElementById('tarifa-recursamiento').value = data.conceptos[3].monto;
+                    document.getElementById('tarifa-extraordinario').value = data.conceptos[4].monto;
+                }
+            } catch (error) {
+                console.error("Error al pre-cargar tarifas reales:", error);
+            }
+        }
+
+        // FUNCIÓN QUE ESCRIBE DIRECTO EN TU TABLA DE SUPABASE Y ADEMÁS ACTUALIZA LA VISTA
+        async function guardarTarifas(event) {
+            event.preventDefault();
+            
+            const paqueteTarifas = [
+                { id: 1, monto: parseFloat(document.getElementById('tarifa-inscripcion-cuatri').value) },
+                { id: 2, monto: parseFloat(document.getElementById('tarifa-inscripcion-mensual').value) },
+                { id: 3, monto: parseFloat(document.getElementById('tarifa-constancia').value) },
+                { id: 4, monto: parseFloat(document.getElementById('tarifa-recursamiento').value) },
+                { id: 5, monto: parseFloat(document.getElementById('tarifa-extraordinario').value) }
+            ];
+
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/tarifas', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tarifas: paqueteTarifas })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert("💾 ¡Sincronización Exitosa! Las 5 tarifas han sido guardadas en Supabase.");
+                    // Forzamos a la página a volver a leer la base de datos para asegurar el cambio
+                    await cargarTarifasPersistentes();
+                } else {
+                    alert(`❌ Error de Base de Datos: ${data.error}`);
+                }
+            } catch (error) {
+                console.error("Error en la conexión PUT:", error);
+                alert("❌ No se pudo establecer conexión con el servidor para actualizar los precios.");
+            }
+        }
+    </script>
+</body>
+</html>

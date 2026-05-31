@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventanilla de Cobro - Auxiliar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-principal: #f8fafc;
+            --azul-formal: #0f172a;
+            --azul-intermedio: #1e293b;
+            --borde-tarjeta: #e2e8f0;
+            --verde-exito: #10b981;
+            --oro-llamativo: #eab308;
+            --rojo-error: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hubot Sans', sans-serif; }
+        body { background: var(--bg-principal); padding: 30px 20px; color: #334155; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; border: 2px solid var(--borde-tarjeta); position: relative; }
+        
+        /* BANNER DE ESTADO DE CONEXION */
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .status-badge { padding: 6px 14px; border-radius: 30px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+        .status-online { background-color: #ecfdf5; color: var(--verde-exito); border: 1px solid #a7f3d0; }
+        .status-simulated { background-color: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+
+        /* Botón Cerrar Sesión Estilizado */
+        .btn-cerrar-sesion {
+            padding: 8px 16px;
+            background-color: var(--rojo-error);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-cerrar-sesion:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        h2 { color: var(--azul-formal); font-weight: 800; }
+        p.sub { color: #64748b; font-size: 0.9rem; margin-top: 4px; }
+
+        /* PESTAÑAS (TABS) */
+        .tabs-container { display: flex; border-bottom: 2px solid var(--borde-tarjeta); margin-bottom: 25px; gap: 10px; }
+        .tab-button { padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; font-size: 0.95rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; }
+        .tab-button:hover { color: var(--azul-formal); }
+        .tab-button.active { color: var(--azul-formal); border-bottom-color: var(--azul-formal); font-weight: 800; }
+
+        /* VISTAS DE PESTAÑA */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--azul-formal); }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--borde-tarjeta); font-size: 0.95rem; outline: none; }
+        input:focus, select:focus { border-color: var(--azul-formal); }
+        
+        .btn-cobrar { width: 100%; padding: 15px; background: var(--azul-formal); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
+        .btn-cobrar:hover { background: #1e293b; }
+        .btn-registrar { width: 100%; padding: 15px; background: var(--verde-exito); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
+        .btn-registrar:hover { background: #059669; }
+
+        /* NOTIFICACIONES PREMIUM (TOASTS) */
+        .toast-notification { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 12px; background: var(--azul-formal); color: white; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 12px; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; }
+        .toast-notification.active { transform: translateY(0); opacity: 1; }
+        .toast-success { border-left: 5px solid var(--verde-exito); }
+        .toast-error { border-left: 5px solid var(--rojo-error); }
+
+        /* MODAL DE CONFIRMACIÓN MODERNO */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 999; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; max-width: 450px; width: 90%; text-align: center; border: 2px solid var(--borde-tarjeta); }
+        .modal-box h3 { font-size: 1.3rem; font-weight: 800; color: var(--azul-formal); margin-bottom: 12px; }
+        .modal-box p { font-size: 0.95rem; color: #64748b; margin-bottom: 24px; line-height: 1.5; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+        .btn-modal { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem; }
+        .btn-confirm { background: var(--azul-formal); color: white; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
+
+        /* MODAL DE PROCESAMIENTO (RELOJ DE ARENA) */
+        .modal-procesando { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); justify-content: center; align-items: center; z-index: 999; color: white; text-align: center; }
+        .reloj-arena { font-size: 4rem; animation: girar 2s linear infinite; margin-bottom: 15px; }
+        @keyframes girar { 0% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } 100% { transform: rotate(360deg); } }
+
+        /* VISTA DE TICKET DE IMPRESIÓN */
+        #comprobante-impresion { display: none; background: white; padding: 20px; border: 1px dashed #000; width: 350px; margin: 20px auto; font-family: monospace; }
+        .ticket-linea { border-bottom: 1px dashed #000; margin: 10px 0; }
+
+        @media print {
+            body * { display: none; }
+            #comprobante-impresion, #comprobante-impresion * { display: block; }
+            #comprobante-impresion { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+            .btn-imprimir-ticket { display: none !important; }
+        }
+
+        /* --- ESTILOS AGREGADOS SOLO PARA LOS 2 LOGOS --- */
+        .header-logos-dual {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            padding: 0 10px; /* Solo un pequeño margen para que se alineen con el cuadro de abajo */
+            
+            /* Eliminamos el background, border y border-radius para quitar el cuadro */
+        }
+        .logo-box-superior {
+            width: 120px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-box-superior img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-logos-dual">
+        <div class="logo-box-superior">
+            <img src="logo_empresa.svg" alt="" onerror="this.parentNode.innerHTML='<small style=\'color:#94a3b8; font-weight:bold;\'>LOGO EMPRESA</small>'">
+        </div>
+        <div class="logo-box-superior">
+            <img src="logo_escuela.png" alt="Logo Escuela" onerror="this.parentNode.innerHTML='<small style=\'color:#94a3b8; font-weight:bold;\'>LOGO ESCUELA</small>'">
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="container" id="modulo-cobro">
+        <div class="header-area">
+            <div>
+                <h2>🏛️ Módulo de Ventanilla - Personal de Caja</h2>
+                <p class="sub">Registra estudiantes de nuevo ingreso y recauda sus pagos escolares.</p>
+            </div>
+            
+            <!-- Grupo de Estado e Interrupción de Jornada -->
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <!-- Estado dinámico de conexión a base de datos -->
+                <div id="status-network" class="status-badge status-simulated">
+                    <span>🟡 Simulando (Sin Servidor)</span>
+                </div>
+                <!-- Botón de Cerrar Sesión Segura -->
+                <button id="btn-cerrar-sesion" class="btn-cerrar-sesion">Cerrar Sesión 🚪</button>
+            </div>
+        </div>
+
+        <!-- SELECCIÓN DE PESTAÑAS (TABS) -->
+        <div class="tabs-container">
+            <button id="tab-button-cobrar" class="tab-button active" onclick="cambiarPestana('tab-cobrar')">💳 Cobrar Trámite</button>
+            <button id="tab-button-registrar" class="tab-button" onclick="cambiarPestana('tab-registrar')">📝 Registrar Alumno Nuevo</button>
+        </div>
+
+        <!-- PESTAÑA A: FORMULARIO DE COBRO -->
+        <div id="tab-cobrar" class="tab-content active">
+            <form id="form-cobro" onsubmit="procesarCobro(event)">
+                <div class="form-group">
+                    <label>Matrícula del Estudiante</label>
+                    <input type="text" id="estudiante-matricula" required placeholder="Ej: ESC202600">
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Alumno (Para el Comprobante)</label>
+                    <input type="text" id="estudiante-nombre" required placeholder="ingresar nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Concepto de Cobro</label>
+                    <select id="concepto-id" required onchange="actualizarMonto()">
+                        <option value="" disabled selected>Cargando catálogo...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto a Pagar ($ MXN)</label>
+                    <input type="number" id="monto-pagar" readonly style="background: #f1f5f9; font-weight: 600;">
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="forma-pago" required>
+                        <option value="Efectivo">Efectivo (Físico)</option>
+                        <option value="Tarjeta">Tarjeta Bancaria (Terminal)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-cobrar">Ejecutar Cobro ⚡</button>
+            </form>
+        </div>
+
+        <!-- PESTAÑA B: FORMULARIO DE REGISTRO ALUMNO NUEVO -->
+        <div id="tab-registrar" class="tab-content">
+            <form id="form-registro" onsubmit="registrarAlumnoNuevo(event)">
+                <div class="form-group">
+                    <label>Matrícula Institucional Asignada</label>
+                    <input type="text" id="reg-matricula" required placeholder="Ej: ESC202600">
+                </div>
+                <div class="form-group">
+                    <label>Nombre Completo del Estudiante</label>
+                    <input type="text" id="reg-nombre" required placeholder="ingresa nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Carrera / Plan de Estudios</label>
+                    <select id="reg-carrera" required>
+                        <option value="" disabled selected>Selecciona una opción...</option>
+                        <option value="Ingeniería en Sistemas Computacionales">Ingeniería en Sistemas Computacionales</option>
+                        <option value="Ingeniería en Desarrollo de Software">Ingeniería en Desarrollo de Software</option>
+                        <option value="Licenciatura en Administración">Licenciatura en Administración</option>
+                        <option value="Licenciatura en Criminología">Licenciatura en Criminología</option>
+                        <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cuatrimestre de Ingreso</label>
+                    <select id="reg-cuatrimestre" required>
+                        <option value="1">1° Cuatrimestre</option>
+                        <option value="2">2° Cuatrimestre</option>
+                        <option value="3">3° Cuatrimestre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Modalidad de Estudio</label>
+                    <select id="reg-modalidad" required>
+                        <option value="Escolarizada">Escolarizada (Lunes a Viernes)</option>
+                        <option value="Sabatina">Sabatina (Sábados)</option>
+                        <option value="Online">Online (Virtual)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-registrar">Registrar Estudiante 💾</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE CARGA / SIMULACIÓN TERMINAL BANCARIA -->
+    <div id="modal-espera" class="modal-procesando">
+        <div>
+            <div class="reloj-arena">⏳</div>
+            <h3 style="font-weight: 800; font-size: 1.5rem;">Conectando con la terminal de cobro...</h3>
+            <p style="color: #94a3b8; margin-top: 10px;">Por favor, deslice, inserte o acerque la tarjeta al dispositivo operativo.</p>
+        </div>
+    </div>
+
+    <!-- TICKET DE COMPROBANTE FINAL -->
+    <div id="comprobante-impresion">
+        <div style="text-align: center;">
+            <h3 style="font-weight: 800;">SISTEMA ESCOLAR UTAC</h3>
+            <p>Comprobante Oficial de Pago</p>
+            <p id="ticket-fecha"></p>
+        </div>
+        <div class="ticket-linea"></div>
+        <p><strong>Folio Transacción:</strong> <span id="ticket-folio"></span></p>
+        <p><strong>Matrícula Alumno:</strong> <span id="ticket-alumno-id"></span></p>
+        <p><strong>Nombre:</strong> <span id="ticket-alumno-nombre"></span></p>
+        <div class="ticket-linea"></div>
+        <p><strong>Concepto:</strong> <span id="ticket-concepto"></span></p>
+        <p><strong>Método:</strong> <span id="ticket-metodo"></span></p>
+        <div class="ticket-linea"></div>
+        <h3 style="text-align: right; font-weight: 800;">Total: $<span id="ticket-total"></span>.00</h3>
+        <div class="ticket-linea"></div>
+        <p style="text-align: center; font-size: 0.8rem;">¡Pago guardado exitosamente!</p>
+        <button class="btn-imprimir-ticket" onclick="window.print()" style="width:100%; padding:10px; margin-top:15px; background:#10b981; color:white; border:none; font-weight:bold; cursor:pointer; border-radius:5px;">🖨️ Imprimir Ticket</button>
+        <button class="btn-imprimir-ticket" onclick="regresarAVentanilla()" style="width:100%; padding:10px; margin-top:5px; background:#64748b; color:white; border:none; cursor:pointer; border-radius:5px;">← Volver</button>
+    </div>
+
+    <!-- TOAST NOTIFICADOR -->
+    <div id="toast" class="toast-notification">
+        <span id="toast-message">Notificación</span>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN MODERNO -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="confirm-title">Confirmar Acción</h3>
+            <p id="confirm-body">¿Estás seguro de que deseas realizar este paso?</p>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" onclick="closeConfirmModal(false)">Cancelar</button>
+                <button class="btn-modal btn-confirm" id="btn-modal-agree">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PARCHE DE AUTODETECCIÓN INTELIGENTE DE CONEXIÓN
+        // Si la página se abre localmente (file://), el sistema forzará las peticiones a localhost:3000
+        const API_BASE = window.location.protocol === 'file:' 
+            ? 'http://localhost:3000' 
+            : window.location.origin;
+
+        let serverOnline = false;
+
+        const MOCK_CONCEPTOS = [
+            { id: 1, concepto: "Inscripción Cuatrimestral", monto: 3500 },
+            { id: 2, concepto: "Inscripción Mensual", monto: 1575 },
+            { id: 3, concepto: "Constancia de Estudios", monto: 120 },
+            { id: 4, concepto: "Recursamiento de Materia", monto: 2000 },
+            { id: 5, concepto: "Examen Extraordinario", monto: 1500 }
+        ];
+
+        let simulatedStudents = JSON.parse(localStorage.getItem('sim_students') || '[]');
+
+        window.onload = function() {
+            cargarConceptosDeBaseDeDatos();
+        };
+
+        // SISTEMA DE NOTIFICACIONES TOAST PREMIUM
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            toast.className = `toast-notification toast-${type} active`;
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 4000);
+        }
+
+        // MODAL DE CONFIRMACIÓN ASÍNCRONO
+        let confirmPromiseResolver;
+        function showConfirmModal(title, text) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-body').textContent = text;
+            document.getElementById('confirm-modal').style.display = 'flex';
+            
+            return new Promise((resolve) => {
+                confirmPromiseResolver = resolve;
+                document.getElementById('btn-modal-agree').onclick = () => {
+                    closeConfirmModal(true);
+                };
+            });
+        }
+
+        function closeConfirmModal(result) {
+            document.getElementById('confirm-modal').style.display = 'none';
+            if (confirmPromiseResolver) {
+                confirmPromiseResolver(result);
+            }
+        }
+
+        // CONTROL DE BOTÓN DE CERRAR SESIÓN
+        document.getElementById('btn-cerrar-sesion').addEventListener('click', async function() {
+            const confirmar = await showConfirmModal(
+                "Finalizar Turno de Caja",
+                "¿Estás seguro de que deseas cerrar tu sesión en esta ventanilla y volver al menú principal?"
+            );
+            if (confirmar) {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+
+        // INTERCAMBIADOR DE PESTAÑAS (TABS)
+        function cambiarPestana(pestanaId) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (pestanaId === 'tab-cobrar') {
+                document.getElementById('tab-button-cobrar').classList.add('active');
+            } else {
+                document.getElementById('tab-button-registrar').classList.add('active');
+            }
+            document.getElementById(pestanaId).classList.add('active');
+        }
+
+        async function cargarConceptosDeBaseDeDatos() {
+            const select = document.getElementById('concepto-id');
+            const badge = document.getElementById('status-network');
+            
+            try {
+                // Hacemos el fetch dinámico a la base del servidor
+                const response = await fetch(`${API_BASE}/api/conceptos`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    serverOnline = true;
+                    badge.className = "status-badge status-online";
+                    badge.innerHTML = "🟢 Conectado a DataBase ";
+                    
+                    select.innerHTML = '<option value="" disabled selected>Selecciona un concepto...</option>';
+                    data.conceptos.forEach(concepto => {
+                        const option = document.createElement('option');
+                        option.value = concepto.id;
+                        option.setAttribute('data-precio', concepto.monto); 
+                        option.textContent = `${concepto.nombre_concepto} ($${concepto.monto}.00)`; 
+                        select.appendChild(option);
+                    });
+                } else {
+                    throw new Error("Respuesta inválida");
+                }
+            } catch (error) {
+                serverOnline = false;
+                badge.className = "status-badge status-simulated";
+                badge.innerHTML = "🟡 Modo Simulado (Local)";
+                
+                select.innerHTML = '<option value="" disabled selected>Selecciona un concepto...</option>';
+                MOCK_CONCEPTOS.forEach(concepto => {
+                    const option = document.createElement('option');
+                    option.value = concepto.id;
+                    option.setAttribute('data-precio', concepto.monto); 
+                    option.textContent = `${concepto.concepto} ($${concepto.monto}.00)`; 
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function actualizarMonto() {
+            const select = document.getElementById('concepto-id');
+            const precio = select.options[select.selectedIndex].getAttribute('data-precio');
+            document.getElementById('monto-pagar').value = precio;
+        }
+
+        // REGISTRO DE ALUMNO NUEVO
+        async function registrarAlumnoNuevo(event) {
+            event.preventDefault();
+
+            const matricula = document.getElementById('reg-matricula').value.trim();
+            const nombre = document.getElementById('reg-nombre').value.trim();
+            const carrera = document.getElementById('reg-carrera').value;
+            const cuatrimestre = document.getElementById('reg-cuatrimestre').value;
+            const modalidad = document.getElementById('reg-modalidad').value;
+
+            if (serverOnline) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/registrar_estudiante`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ matricula, nombre, carrera, cuatrimestre, modalidad })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        ejecutarRedireccionCobro(matricula, nombre);
+                    } else {
+                        showToast(`❌ Error al registrar en Supabase: ${data.error || data.detalle}`, 'error');
+                    }
+                } catch (error) {
+                    showToast("❌ Error al conectar al servidor.", "error");
+                }
+            } else {
+                const student = { matricula, nombre, carrera, cuatrimestre, modalidad };
+                simulatedStudents.push(student);
+                localStorage.setItem('sim_students', JSON.stringify(simulatedStudents));
+                ejecutarRedireccionCobro(matricula, nombre);
+            }
+        }
+
+        function ejecutarRedireccionCobro(matricula, nombre) {
+            showToast(`🎉 ¡Éxito! Estudiante registrado.\nMatrícula: ${matricula}`);
+            document.getElementById('form-registro').reset();
+            cambiarPestana('tab-cobrar');
+
+            // Prellenar datos
+            document.getElementById('estudiante-matricula').value = matricula;
+            document.getElementById('estudiante-nombre').value = nombre;
+
+            const selectConcepto = document.getElementById('concepto-id');
+            selectConcepto.value = "1"; // Seleccionar primer concepto
+            actualizarMonto();
+        }
+
+        // PROCESAMIENTO DE COBRO
+        async function procesarCobro(event) {
+            event.preventDefault();
+
+            const matricula = document.getElementById('estudiante-matricula').value.trim();
+            const nombre = document.getElementById('estudiante-nombre').value.trim();
+            const selectConcepto = document.getElementById('concepto-id');
+            const concepto_texto = selectConcepto.options[selectConcepto.selectedIndex].text;
+            const concepto_id = selectConcepto.value;
+            const monto = document.getElementById('monto-pagar').value;
+            const forma_pago = document.getElementById('forma-pago').value;
+
+            if (forma_pago === "Efectivo") {
+                const confirmar = await showConfirmModal(
+                    "Confirmar Cobro Físico", 
+                    `¿Confirmar recaudación de $${monto}.00 MXN en EFECTIVO para el alumno ${nombre} (${matricula})?`
+                );
+                if (!confirmar) return; 
+                await enviarCobroABackend({ matricula, nombre, concepto_id, concepto_texto, monto, forma_pago });
+            } 
+            else if (forma_pago === "Tarjeta") {
+                const modal = document.getElementById('modal-espera');
+                modal.style.display = "flex"; 
+
+                setTimeout(async () => {
+                    modal.style.display = "none"; 
+                    await enviarCobroABackend({ matricula, nombre, concepto_id, concepto_texto, monto, forma_pago });
+                }, 4000); 
+            }
+        }
+
+        async function enviarCobroABackend(datos) {
+            if (serverOnline) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/pagos/cobrar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matricula: datos.matricula, 
+                            concepto_id: datos.concepto_id,
+                            monto_pagado: datos.monto,
+                            forma_pago: datos.forma_pago
+                        })
+                    });
+
+                    const serverData = await response.json();
+
+                    if (serverData.success) {
+                        mostrarComprobanteFinal({
+                            folio: `REC-${serverData.pago_id}`,
+                            fecha: serverData.fecha || Date.now(),
+                            ...datos
+                        });
+                    } else {
+                        showToast(`❌ Denegado por el sistema: ${serverData.error}`, 'error');
+                    }
+                } catch (error) {
+                    showToast("❌ Error de comunicación con tu servidor.", 'error');
+                }
+            } else {
+                const randomId = Math.floor(1000 + Math.random() * 9000);
+                mostrarComprobanteFinal({
+                    folio: `SIM-REC-${randomId}`,
+                    fecha: new Date().toISOString(),
+                    ...datos
+                });
+            }
+        }
+
+        function mostrarComprobanteFinal(datosComprobante) {
+            document.getElementById('ticket-folio').innerText = datosComprobante.folio;
+            document.getElementById('ticket-fecha').innerText = new Date(datosComprobante.fecha).toLocaleString();
+            document.getElementById('ticket-alumno-id').innerText = datosComprobante.matricula.toUpperCase();
+            document.getElementById('ticket-alumno-nombre').innerText = datosComprobante.nombre;
+            document.getElementById('ticket-concepto').innerText = datosComprobante.concepto_texto;
+            document.getElementById('ticket-metodo').innerText = datosComprobante.forma_pago;
+            document.getElementById('ticket-total').innerText = datosComprobante.monto;
+            
+            document.getElementById('modulo-cobro').style.display = "none";
+            document.getElementById('comprobante-impresion').style.display = "block";
+            
+            document.getElementById('form-cobro').reset();
+            showToast("✅ Transacción cobrada con éxito.");
+        }
+
+        function regresarAVentanilla() {
+            document.getElementById('comprobante-impresion').style.display = "none";
+            document.getElementById('modulo-cobro').style.display = "block";
+            cambiarPestana('tab-cobrar');
+        }
+    </script>
+    <footer style="text-align: center; margin-top: 40px; font-size: 0.85rem; color: #64748b; padding-bottom: 20px;">
+    &copy; 2026 Sistema de Gestión y Cobros Escolares - Módulo Comercial SAAS.<br>
+    Desarrollado por <strong>Luna Network</strong>. Todos los derechos reservados.
+</footer>
+</body>
+</html>
