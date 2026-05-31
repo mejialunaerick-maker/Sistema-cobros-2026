@@ -261,7 +261,7 @@
         // 1. CARGAR ESTADÍSTICAS DESDE EL BACKEND EN TIEMPO REAL
         async function cargarEstadisticasReal() {
             try {
-                const response = await fetch('http://localhost:3000/api/admin/estadisticas');
+                const response = await fetch('https://sistema-cobros-2026.onrender.com/api/admin/estadisticas');
                 const data = await response.json();
 
                 // Formateamos e inyectamos los valores reales en el HTML
@@ -278,7 +278,7 @@
         async function cargarAuxiliares() {
             const tabla = document.getElementById('tabla-auxiliares');
             try {
-                const response = await fetch('http://localhost:3000/api/usuarios/auxiliares');
+                const response = await fetch('https://sistema-cobros-2026.onrender.com/api/usuarios/auxiliares');
                 const auxiliares = await response.json();
 
                 tabla.innerHTML = "";
@@ -313,7 +313,7 @@
             const contrasena = document.getElementById('aux-pass').value;
 
             try {
-                const response = await fetch('http://localhost:3000/api/usuarios/auxiliar', {
+                const response = await fetch('https://sistema-cobros-2026.onrender.com/api/usuarios/auxiliar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre, correo: email, contrasena })
@@ -341,7 +341,7 @@
         async function cargarTarifasPersistentes() {
             try {
                 // Le pedimos al servidor los conceptos con sus precios reales actualizados
-                const response = await fetch('http://localhost:3000/api/conceptos');
+                const response = await fetch('https://sistema-cobros-2026.onrender.com/api/conceptos');
                 const data = await response.json();
 
                 if (data.success && data.conceptos.length >= 5) {
@@ -371,7 +371,7 @@
             ];
 
             try {
-                const response = await fetch('http://localhost:3000/api/admin/tarifas', {
+                const response = await fetch('https://sistema-cobros-2026.onrender.com/api/admin/tarifas', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tarifas: paqueteTarifas })
